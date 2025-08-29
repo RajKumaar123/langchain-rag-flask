@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Documents</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="{{ url_for('static', filename='upload.js') }}" defer></script>
+</head>
+<body>
+  <header>
+    <h1>📂 Upload & Index Documents</h1>
+    <p>Add your documents to the knowledge base (duplicates are skipped)</p>
+  </header>
+
+  <main class="grid">
+    <div class="card">
+      <h3>Upload Files</h3>
+      <input type="file" id="fileInput" multiple>
+      <button id="uploadBtn">Upload</button>
+      <div id="uploadStatus" class="mono"></div>
+    </div>
+
+    <div class="card">
+      <h3>Indexed Documents</h3>
+      <div id="indexedList" class="mono"></div>
+    </div>
+  </main>
+
+  <footer>
+    <a href="{{ url_for('index') }}">⬅ Back to Home</a>
+  </footer>
+</body>
+</html>

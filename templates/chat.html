@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat with Documents</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <!-- Markdown renderer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    function generateSessionId(){ return 'sess_' + Math.random().toString(36).slice(2,10); }
+    const sessionId = generateSessionId();
+  </script>
+</head>
+<body class="chat-page">
+  <div class="nav">
+    <a href="{{ url_for('index') }}">⬅ Back to Home</a>
+  </div>
+
+  <div class="chat-container">
+    <div id="chat-box" class="chat-box"></div>
+    <div class="input-area">
+      <textarea id="user-input" placeholder="Type your message here..." rows="1"></textarea>
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+    const inputEl = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    function appendMsg(role, html){
+      const wrap = document.createElement("div");
+      wrap.className = "msg " + (role === "user" ? "user" : "bot");
+      wrap.innerHTML = html;
+      chatBox.appendChild(wrap);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function normalizeImages(images){
+      if (!Array.isArray(images) || images.length === 0) return [];
+      if (typeof images[0] === "string"){
+        return images.map(u => ({ url: u, figure_no: null, page: null, caption: "" }));
+      }
+      return images.map(o => ({
+        url: o.url || o.src || "",
+        figure_no: o.figure_no ?? o.figure ?? null,
+        page: o.page ?? null,
+        caption: o.caption || ""
+      })).filter(o => o.url);
+    }
+
+    async function sendMessage(){
+      const question = inputEl.value.trim();
+      if(!question) return;
+      appendMsg("user", question);
+      inputEl.value = "";
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, session_id: sessionId })
+      });
+      const data = await res.json();
+
+      let html = "";
+      const figs = normalizeImages(data.images).slice(0, 4); // show up to 4 images
+      if (figs.length){
+        html += `<div class="figure-gallery">`;
+        figs.forEach(fig => {
+          const figNo = fig.figure_no ? `Figure ${fig.figure_no}` : "Figure";
+          const page = fig.page ? ` (p. ${fig.page})` : "";
+          const caption = fig.caption || "";
+          html += `
+            <figure class="fig-card">
+              <img src="${fig.url}" alt="${caption || figNo}" loading="lazy">
+              <figcaption><strong>${figNo}${page}.</strong> ${caption}</figcaption>
+            </figure>
+          `;
+        });
+        html += `</div>`;
+      }
+
+      // Render Markdown answer nicely
+      const rendered = marked.parse(data.answer || "(No response)");
+      html += `<div class="bot-content">${rendered}</div>`;
+
+      appendMsg("bot", html);
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    inputEl.addEventListener("keydown", (e)=>{
+      if (e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+langchain-rag-flask/
+│
+├── app.py                         # Flask routes & APIs (/upload, /chat, /api/*), session handling
+├── config.py                      # Constants: UPLOAD_DIR, TOP_K, TEMPERATURE, MAX_TOKENS, CHROMA_DIR
+├── requirements.txt               # Python deps (Flask, langchain, chromadb, google-genai, nltk, sacrebleu, etc.)
+├── .env.example                   # Sample env vars (copy -> .env)
+├── README.md                      # Project docs
+├── Dockerfile                     # Optional containerization
+├── Procfile                       # For Heroku/Render-style deploy
+├── .gitignore                     # venv, __pycache__, uploads/, chroma_store/, .env, etc.
+│
+├── templates/                     # Pages (clean, separated)
+│   ├── index.html                 # Home: cards linking to Upload & Chat
+│   ├── upload.html                # Upload & Indexing (lists indexed docs)
+│   └── chat.html                  # Chat UI (images + markdown + memory + back-to-home)
+│
+├── static/
+│   ├── styles.css                 # Unified dark theme, chat bubbles, figure gallery
+│   ├── upload.js                  # Upload flow + “Indexed Documents” list
+│   └── chat.js                    # (optional) If you split chat JS out of chat.html
+│
+├── rag/                           # RAG core (modular & testable)
+│   ├── __init__.py
+│   ├── embedder.py                # GoogleGenerativeAIEmbeddings wrapper (one place to switch models)
+│   ├── retriever.py               # Chroma init (persist), add_to_index (dedupe/upsert), query_index, list docs
+│   ├── memory.py                  # RunnableWithMessageHistory session store helpers
+│   ├── chains.py                  # Prompt(s) + LCEL pipeline (chat chain, fallback logic hooks)
+│   ├── evaluators.py              # BLEU (nltk) + sacreBLEU; simple retrieval/answer overlay utilities
+│   └── utils.py                   # load_and_split_with_images, chunking, hashing (file + chunk), helpers
+│
+├── uploads/                       # User uploads + extracted page assets (served via /uploads/<path>)
+│   └── <auto-created per file>    # e.g., mydoc_assets/...
+│
+├── chroma_store/                  # Persistent ChromaDB directory (persist_directory)
+│   └── <auto-created by Chroma>   # index data lives here across restarts
+│
+└── tests/
+    ├── smoke.py                   # Quick sanity test of /api/upload, /api/indexed, /api/chat
+    └── sample_questions.json      # (optional) prompts to test evaluation metrics

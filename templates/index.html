@@ -1,0 +1,70 @@
+<!-- templates/index.html  (updated: shows indexed docs on home) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RAG Assistant</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    .indexed { max-width: 900px; margin: 20px auto; background: var(--card, #111827); border: 1px solid #1f2937; border-radius: 12px; padding: 16px; }
+    .indexed h3 { margin-top: 0; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; color: #cbd5e1; }
+    .pill { display:inline-block; margin:4px 6px 0 0; padding:6px 10px; background:#0f172a; border:1px solid #334155; border-radius:999px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📚 RAG Knowledge Assistant</h1>
+    <p>Select what you want to do</p>
+  </header>
+
+  <main class="grid">
+    <div class="card" style="text-align:center;">
+      <h2>📂 Upload & Index Docs</h2>
+      <p>Upload PDFs, Word, TXT or CSV files and embed them into the database for retrieval.</p>
+      <a class="btn" href="{{ url_for('upload') }}">Go to Upload</a>
+    </div>
+
+    <div class="card" style="text-align:center;">
+      <h2>💬 Chat with Docs</h2>
+      <p>Ask questions and interact with the knowledge base like WhatsApp-style chat.</p>
+      <a class="btn" href="{{ url_for('chat') }}">Go to Chat</a>
+    </div>
+  </main>
+
+  <!-- Indexed docs preview on Home -->
+  <section class="indexed">
+    <h3>Indexed Documents</h3>
+    <div id="indexedHome" class="mono">Loading…</div>
+  </section>
+
+  <footer>
+    <p>⚡ Powered by LangChain + Flask + ChromaDB</p>
+  </footer>
+
+  <script>
+    async function loadIndexed() {
+      try {
+        const res = await fetch("/api/indexed");
+        const data = await res.json();
+        const box = document.getElementById("indexedHome");
+        box.innerHTML = "";
+        const docs = data && data.documents ? data.documents : [];
+        if (!docs.length) {
+          box.innerHTML = "<em>No documents indexed yet.</em>";
+          return;
+        }
+        docs.forEach(name => {
+          const span = document.createElement("span");
+          span.className = "pill";
+          span.textContent = name;
+          box.appendChild(span);
+        });
+      } catch (e) {
+        document.getElementById("indexedHome").textContent = "Failed to load indexed docs.";
+      }
+    }
+    loadIndexed();
+  </script>
+</body>
+</html>
